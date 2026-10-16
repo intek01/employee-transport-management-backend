@@ -1,0 +1,203 @@
+{
+  "info": {
+    "name": "Employee Transport Management Backend",
+    "description": "Core flows for the Employee Transport Management Backend API: creating employees, routes and vehicles, creating a booking, and the two conflict cases (duplicate booking, capacity exceeded).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "employeeId",
+      "value": ""
+    },
+    {
+      "key": "routeId",
+      "value": ""
+    },
+    {
+      "key": "vehicleId",
+      "value": ""
+    },
+    {
+      "key": "bookingId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Create Employee",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (pm.response.code === 201) {",
+              "    const body = pm.response.json();",
+              "    pm.collectionVariables.set('employeeId', body.id);",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fullName\": \"Asha Rahman\",\n  \"email\": \"asha.rahman@example.com\",\n  \"phoneNumber\": \"9876543210\",\n  \"department\": \"Engineering\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/employees",
+          "host": [ "{{baseUrl}}" ],
+          "path": [ "api", "v1", "employees" ]
+        }
+      }
+    },
+    {
+      "name": "Create Route",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (pm.response.code === 201) {",
+              "    const body = pm.response.json();",
+              "    pm.collectionVariables.set('routeId', body.id);",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"routeName\": \"Route-1\",\n  \"startLocation\": \"City Center\",\n  \"endLocation\": \"Tech Park\",\n  \"distanceKm\": 12.5\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/routes",
+          "host": [ "{{baseUrl}}" ],
+          "path": [ "api", "v1", "routes" ]
+        }
+      }
+    },
+    {
+      "name": "Create Vehicle",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (pm.response.code === 201) {",
+              "    const body = pm.response.json();",
+              "    pm.collectionVariables.set('vehicleId', body.id);",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"registrationNumber\": \"TR-01-AB-1234\",\n  \"driverName\": \"Ramesh Kumar\",\n  \"capacity\": 2,\n  \"routeId\": {{routeId}}\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/vehicles",
+          "host": [ "{{baseUrl}}" ],
+          "path": [ "api", "v1", "vehicles" ]
+        }
+      }
+    },
+    {
+      "name": "Create Booking - Success",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (pm.response.code === 201) {",
+              "    const body = pm.response.json();",
+              "    pm.collectionVariables.set('bookingId', body.id);",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"employeeId\": {{employeeId}},\n  \"vehicleId\": {{vehicleId}},\n  \"bookingDate\": \"2026-10-20\",\n  \"pickupPoint\": \"Gate 2\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/bookings",
+          "host": [ "{{baseUrl}}" ],
+          "path": [ "api", "v1", "bookings" ]
+        }
+      }
+    },
+    {
+      "name": "Create Booking - Duplicate (expect 409)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"employeeId\": {{employeeId}},\n  \"vehicleId\": {{vehicleId}},\n  \"bookingDate\": \"2026-10-20\",\n  \"pickupPoint\": \"Gate 2\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/bookings",
+          "host": [ "{{baseUrl}}" ],
+          "path": [ "api", "v1", "bookings" ]
+        },
+        "description": "Run this right after \"Create Booking - Success\" for the same employee/vehicle/date. The vehicle used above has capacity 2, so run this twice with two different employees to also observe the capacity-exceeded (409) response on the third attempt."
+      }
+    },
+    {
+      "name": "Cancel Booking",
+      "request": {
+        "method": "PATCH",
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/bookings/{{bookingId}}/cancel",
+          "host": [ "{{baseUrl}}" ],
+          "path": [ "api", "v1", "bookings", "{{bookingId}}", "cancel" ]
+        }
+      }
+    },
+    {
+      "name": "Get Bookings by Employee",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/bookings?employeeId={{employeeId}}",
+          "host": [ "{{baseUrl}}" ],
+          "path": [ "api", "v1", "bookings" ],
+          "query": [
+            { "key": "employeeId", "value": "{{employeeId}}" }
+          ]
+        }
+      }
+    }
+  ]
+}
